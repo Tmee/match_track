@@ -69,7 +69,11 @@ defmodule MatchTrack.Summoner.Server do
     {:reply, {:ok, []}, state, @timeout}
   end
 
-  def handle_call({:recent_participants}, _from, %{previous_matches: prev_matches, puuid: puuid} = state) do
+  def handle_call(
+        {:recent_participants},
+        _from,
+        %{previous_matches: prev_matches, puuid: puuid} = state
+      ) do
     participants =
       prev_matches
       |> Enum.take(5)
