@@ -17,17 +17,8 @@ defmodule MatchTrack.SummonerManager do
   end
 
   def get_summoner_pid_by_name(name) do
-    Riot.get_summoner_by_name(name)
-    |> case do
-      {:ok, %{body: body, status_code: 200}} ->
-        get_summoner_pid(body.puuid, name)
-
-      {:ok, %{body: body}} ->
-        {:error, body}
-
-      err ->
-        err
-    end
+    Riot.get_summoner_puuid_by_name(name)
+    |> get_summoner_pid(name)
   end
 
   defp restart_child_timeout(pid) do

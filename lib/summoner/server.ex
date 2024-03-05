@@ -47,7 +47,7 @@ defmodule MatchTrack.Summoner.Server do
         {:check_matches},
         %{puuid: puuid, name: name, previous_matches: prev_matches} = state
       ) do
-    {:ok, %{status_code: 200, body: new_matches}} = Riot.get_matches_by_puuid(puuid)
+    new_matches = Riot.get_matches_by_puuid(puuid)
 
     (new_matches -- prev_matches)
     |> Enum.each(fn match_id ->
@@ -79,8 +79,6 @@ defmodule MatchTrack.Summoner.Server do
       |> Enum.take(5)
       |> Enum.flat_map(fn match_id ->
         Riot.get_match_details(match_id)
-        |> elem(1)
-        |> Map.get(:body)
         |> Map.get(:info)
         |> Map.get(:participants)
         |> Enum.map(fn participant ->
