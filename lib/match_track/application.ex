@@ -8,7 +8,7 @@ defmodule MatchTrack.Application do
   def start(_type, _args) do
     children = [
       {Registry, keys: :unique, name: Registry.MatchTrack.Summoner},
-      {MatchTrack.SummonerManager.Supervisor, []}
+      {MatchTrack.SummonerManager.Supervisor, []},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

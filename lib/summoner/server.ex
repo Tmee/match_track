@@ -2,7 +2,7 @@ defmodule MatchTrack.Summoner.Server do
   use GenServer
 
   @timeout 1000 * 60 * 60
-  @match_check_delay 2 * 1000
+  @match_check_delay 60 * 1000
 
   alias MatchTrack.Riot.Match.Api, as: Riot
   alias MatchTrack.SummonerManager.Api, as: SummonerManager
@@ -47,7 +47,7 @@ defmodule MatchTrack.Summoner.Server do
         {:check_matches},
         %{puuid: puuid, name: name, previous_matches: prev_matches} = state
       ) do
-    {:ok, %{status_code: 200, body: new_matches}} = Riot.get_matches_by_puuid(puuid)
+    new_matches = Riot.get_matches_by_puuid(puuid)
 
     (new_matches -- prev_matches)
     |> Enum.each(fn match_id ->
@@ -57,8 +57,6 @@ defmodule MatchTrack.Summoner.Server do
     schedule_next_match_check()
     {:noreply, %{state | previous_matches: new_matches}}
   end
-
-  def handle_cast(:restart_timeout, state), do: {:noreply, state, @timeout}
 
   def handle_cast({:check_matches}, state) do
     Process.send_after(self(), {:check_matches}, @match_check_delay)
@@ -71,16 +69,12 @@ defmodule MatchTrack.Summoner.Server do
     {:reply, {:ok, []}, state, @timeout}
   end
 
-  def handle_call({:recent_participants}, _from, %{previous_matches: prev_matches} = state) do
-    # for each match, get participant details
-    # pull out puuid and summoner name from participant list
+  def handle_call({:recent_participants}, _from, %{previous_matches: prev_matches, puuid: puuid} = state) do
     participants =
       prev_matches
       |> Enum.take(5)
       |> Enum.flat_map(fn match_id ->
         Riot.get_match_details(match_id)
-        |> elem(1)
-        |> Map.get(:body)
         |> Map.get(:info)
         |> Map.get(:participants)
         |> Enum.map(fn participant ->
@@ -88,6 +82,7 @@ defmodule MatchTrack.Summoner.Server do
         end)
       end)
       |> Enum.into(%{})
+      |> Map.drop([puuid])
 
     # for each participant, spawn new process
     Enum.each(participants, fn {puuid, name} ->

@@ -12,26 +12,12 @@ defmodule MatchTrack.SummonerManager do
 
     case child do
       {:ok, pid} -> {:ok, pid}
-      {:error, {:already_started, pid}} -> restart_child_timeout(pid)
+      {:error, {:already_started, pid}} -> {:ok, pid}
     end
   end
 
   def get_summoner_pid_by_name(name) do
-    Riot.get_summoner_by_name(name)
-    |> case do
-      {:ok, %{body: body, status_code: 200}} ->
-        get_summoner_pid(body.puuid, name)
-
-      {:ok, %{body: body}} ->
-        {:error, body}
-
-      err ->
-        err
-    end
-  end
-
-  defp restart_child_timeout(pid) do
-    GenServer.cast(pid, :restart_timeout)
-    {:ok, pid}
+    Riot.get_summoner_puuid_by_name(name)
+    |> get_summoner_pid(name)
   end
 end

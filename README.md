@@ -1,6 +1,7 @@
 # MatchTrack
 
-**TODO: Add description**
+Simple match tracking application for League of Legends.
+
 
 ## Installation
 
