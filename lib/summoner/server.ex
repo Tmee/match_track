@@ -2,7 +2,7 @@ defmodule MatchTrack.Summoner.Server do
   use GenServer
 
   @timeout 1000 * 60 * 60
-  @match_check_delay 2 * 1000
+  @match_check_delay 60 * 1000
 
   alias MatchTrack.Riot.Match.Api, as: Riot
   alias MatchTrack.SummonerManager.Api, as: SummonerManager
@@ -58,8 +58,6 @@ defmodule MatchTrack.Summoner.Server do
     {:noreply, %{state | previous_matches: new_matches}}
   end
 
-  def handle_cast(:restart_timeout, state), do: {:noreply, state, @timeout}
-
   def handle_cast({:check_matches}, state) do
     Process.send_after(self(), {:check_matches}, @match_check_delay)
     {:noreply, state}
@@ -72,8 +70,6 @@ defmodule MatchTrack.Summoner.Server do
   end
 
   def handle_call({:recent_participants}, _from, %{previous_matches: prev_matches} = state) do
-    # for each match, get participant details
-    # pull out puuid and summoner name from participant list
     participants =
       prev_matches
       |> Enum.take(5)
